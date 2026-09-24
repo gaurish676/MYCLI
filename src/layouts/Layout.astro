@@ -12,6 +12,11 @@ const { title = "Tailspin Toys" } = Astro.props;
 <!doctype html>
 <html lang="en" class="dark">
     <head>
+        <script is:inline>
+            if (localStorage.getItem('tailspin-high-contrast') === 'true') {
+                document.documentElement.classList.add('high-contrast');
+            }
+        </script>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -23,8 +28,15 @@ const { title = "Tailspin Toys" } = Astro.props;
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     </head>
     <body class="min-h-screen bg-slate-900 text-white transition-colors duration-300 m-0 w-full h-full font-sans">
+        <a
+            href="#main-content"
+            class="absolute left-4 top-4 z-50 -translate-y-20 rounded-lg bg-white px-4 py-2 text-slate-900 focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            data-testid="skip-to-content"
+        >
+            Skip to main content
+        </a>
         <Header />
-        <main class="container mx-auto py-6 h-full max-w-7xl">
+        <main id="main-content" class="container mx-auto py-6 h-full max-w-7xl" tabindex="-1">
             <div class="px-4 sm:px-6 lg:px-8">
                 <slot />
             </div>
@@ -45,5 +57,48 @@ const { title = "Tailspin Toys" } = Astro.props;
     body {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+    }
+
+    html.high-contrast {
+        color-scheme: dark;
+    }
+
+    html.high-contrast body {
+        background-color: #000 !important;
+        color: #fff !important;
+    }
+
+    html.high-contrast header,
+    html.high-contrast nav {
+        background-color: #000 !important;
+        border-color: #fff !important;
+    }
+
+    html.high-contrast [class*='bg-slate-'],
+    html.high-contrast [class*='bg-blue-'],
+    html.high-contrast [class*='bg-purple-'] {
+        background-color: #000 !important;
+    }
+
+    html.high-contrast [class*='text-slate-'],
+    html.high-contrast [class*='text-blue-'],
+    html.high-contrast [class*='text-purple-'] {
+        color: #fff !important;
+    }
+
+    html.high-contrast [class*='border-'] {
+        border-color: #fff !important;
+    }
+
+    html.high-contrast a,
+    html.high-contrast button,
+    html.high-contrast select,
+    html.high-contrast label {
+        color: #fff !important;
+    }
+
+    html.high-contrast :focus-visible {
+        outline: 3px solid #ffff00 !important;
+        outline-offset: 3px;
     }
 </style>
