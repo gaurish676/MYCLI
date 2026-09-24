@@ -61,9 +61,12 @@ This is a crowdfunding platform for games with a developer theme. The applicatio
 
 ### GitHub Actions workflows
 
+
 - Follow good security practices
 - Make sure to explicitly set the workflow permissions
 - Add comments to document what tasks are being performed
+- Every exported function should have a TSDoc comment describing its purpose, parameters, and return value.
+- Before imports or any code, add a comment block to the file that explains its purpose.
 
 ## Scripts
 
