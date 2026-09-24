@@ -24,6 +24,39 @@ test.describe('Game Listing and Navigation', () => {
     });
   });
 
+  test('should filter games by category and publisher together', async ({ page }) => {
+    await page.goto('/');
+
+    const cards = page.getByTestId('game-card');
+    const initialCount = await cards.count();
+    const categoryFilter = page.getByTestId('category-filter-1');
+    const publisherFilter = page.getByTestId('publisher-filter');
+
+    await categoryFilter.check();
+    await publisherFilter.selectOption({ label: 'CodeForge Studios' });
+
+    await expect(page.getByTestId('filter-status')).toContainText(/Showing \d+ of \d+ games/);
+    expect(await page.locator('[data-testid="game-card"]:not([hidden])').count()).toBeLessThan(initialCount);
+    await expect(page.getByTestId('filter-empty-state')).toBeHidden();
+
+    await page.getByTestId('reset-filters').click();
+    await expect(page.getByTestId('filter-status')).toHaveText(`Showing ${initialCount} of ${initialCount} games.`);
+  });
+
+  test('should show an empty state when filters match no games', async ({ page }) => {
+    await page.goto('/');
+
+    await page.getByTestId('category-filter-1').check();
+    await page.getByTestId('publisher-filter').evaluate((select) => {
+      const publisherSelect = select as HTMLSelectElement;
+      publisherSelect.add(new Option('No matching publisher', '99999'));
+      publisherSelect.value = '99999';
+      publisherSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    await expect(page.getByTestId('filter-empty-state')).toBeVisible();
+  });
+
   test('should navigate to correct game details page when clicking on a game', async ({ page }) => {
     let gameId: string | null;
     let gameTitle: string | null;

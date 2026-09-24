@@ -6,6 +6,7 @@ import {
     getAllGames,
     getAllGameIds,
     getGameById,
+    getFilteredGames,
 } from './games';
 
 async function seedGames(db: Database, count: number): Promise<void> {
@@ -62,5 +63,64 @@ describe('games data-access helpers', () => {
     it('returns null for a non-existent game', async () => {
         await seedGames(db, 2);
         expect(await getGameById(db, 99999)).toBeNull();
+    });
+
+    it('filters games by category and publisher together', async () => {
+        const [strategy] = await db
+            .insert(categories)
+            .values([
+                { name: 'Strategy', description: 'strategy' },
+                { name: 'Puzzle', description: 'puzzle' },
+            ])
+            .returning({ id: categories.id });
+        const categoryRows = await db.select().from(categories);
+        const puzzle = categoryRows.find((category) => category.name === 'Puzzle');
+        const [codeForge] = await db
+            .insert(publishers)
+            .values([
+                { name: 'CodeForge Studios', description: 'code forge' },
+                { name: 'DevMasters Inc.', description: 'dev masters' },
+            ])
+            .returning({ id: publishers.id });
+        const publisherRows = await db.select().from(publishers);
+        const devMasters = publisherRows.find((publisher) => publisher.name === 'DevMasters Inc.');
+
+        await db.insert(games).values([
+            {
+                title: 'Strategy CodeForge',
+                description: 'A strategy game.',
+                starRating: 4,
+                categoryId: strategy.id,
+                publisherId: codeForge.id,
+            },
+            {
+                title: 'Puzzle DevMasters',
+                description: 'A puzzle game.',
+                starRating: 4,
+                categoryId: puzzle!.id,
+                publisherId: devMasters!.id,
+            },
+            {
+                title: 'Strategy DevMasters',
+                description: 'Another strategy game.',
+                starRating: 4,
+                categoryId: strategy.id,
+                publisherId: devMasters!.id,
+            },
+        ]);
+
+        const filtered = await getFilteredGames(db, {
+            categoryIds: [strategy.id],
+            publisherId: devMasters!.id,
+        });
+
+        expect(filtered).toHaveLength(1);
+        expect(filtered[0].title).toBe('Strategy DevMasters');
+
+        const multipleCategories = await getFilteredGames(db, {
+            categoryIds: [strategy.id, puzzle!.id],
+        });
+
+        expect(multipleCategories).toHaveLength(3);
     });
 });
